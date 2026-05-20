@@ -5,6 +5,11 @@ from app.rag_pipeline import MissingConfigurationError, RAGPipeline
 from app.vectorstore import QdrantVectorStore, StoredChunk
 
 
+def test_deprecated_groq_model_is_normalized():
+    settings = Settings(groq_api_key="dummy", groq_model="llama3-70b-8192")
+    assert settings.groq_model == "llama-3.3-70b-versatile"
+
+
 class FakeEmbeddingService:
     def embed_texts(self, texts: list[str]) -> np.ndarray:
         if len(texts) == 1 and texts[0] == "what is alpha":

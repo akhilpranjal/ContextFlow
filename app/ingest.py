@@ -16,6 +16,7 @@ from collections.abc import Iterable
 
 # The PdfReader class in the pypdf library is used to read and extract data from PDF files
 from pypdf import PdfReader
+from pypdf.errors import PdfReadError
 # For implementing chunking
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -85,7 +86,10 @@ def extract_pages(filename: str, file_bytes: bytes, content_type: str | None = N
 
 
 def _extract_pdf_pages(filename: str, file_bytes: bytes) -> list[PageText]:
-    reader = PdfReader(io.BytesIO(file_bytes))
+    try:
+        reader = PdfReader(io.BytesIO(file_bytes))
+    except PdfReadError as exc:
+        raise UnsupportedDocumentError("The uploaded PDF could not be read.") from exc
     pages: list[PageText] = []
     for index, page in enumerate(reader.pages, start=1):
         text = normalize_text(page.extract_text() or "")

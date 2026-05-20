@@ -1,6 +1,7 @@
 from functools import lru_cache
+from typing import ClassVar
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # -> To manage application configuration by automatically loading the values from environment 
@@ -14,6 +15,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
+
+    DEFAULT_GROQ_MODEL: ClassVar[str] = "llama-3.3-70b-versatile"
+    DEPRECATED_GROQ_MODELS: ClassVar[set[str]] = {"llama3-70b-8192", "llama-3.1-70b-versatile"}
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -43,6 +47,13 @@ class Settings(BaseSettings):
     qdrant_collection: str = Field(default="contextflow_chunks", validation_alias="QDRANT_COLLECTION")
 
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
+
+    @field_validator("groq_model", mode="before")
+    @classmethod
+    def normalize_deprecated_groq_model(cls, value: str) -> str:
+        if value in cls.DEPRECATED_GROQ_MODELS:
+            return cls.DEFAULT_GROQ_MODEL
+        return value
 
     @property
     def max_upload_size_bytes(self) -> int:

@@ -1,5 +1,7 @@
 from app.config import Settings
-from app.ingest import PageText, chunk_pages, normalize_text
+import pytest
+
+from app.ingest import PageText, UnsupportedDocumentError, chunk_pages, extract_pages, normalize_text
 
 
 def test_normalize_text_collapses_whitespace():
@@ -19,3 +21,8 @@ def test_chunk_page_text_uses_overlap():
     chunks = chunk_pages([page], settings)
     assert len(chunks) >= 2
     assert chunks[0].content.split()[-1] in chunks[1].content
+
+
+def test_extract_pages_rejects_malformed_pdf():
+    with pytest.raises(UnsupportedDocumentError, match="could not be read"):
+        extract_pages("broken.pdf", b"not a real pdf", "application/pdf")

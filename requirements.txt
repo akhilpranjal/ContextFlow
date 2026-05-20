@@ -1,4 +1,6 @@
 fastapi==0.135.3
+requests>=2.31,<3
+streamlit>=1.37,<2
 uvicorn==0.44.0
 pydantic==2.12.5
 pydantic-settings==2.13.1

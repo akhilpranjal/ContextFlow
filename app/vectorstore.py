@@ -45,6 +45,34 @@ class QdrantVectorStore:
                     distance=Distance.COSINE,
                 ),
             )
+            return
+
+        existing_size = self._get_collection_vector_size()
+        if existing_size is not None and existing_size != dimension:
+            # Rebuild the collection so uploads do not fail when old test data or an
+            # earlier embedding model left the collection with a different vector size.
+            self.client.delete_collection(collection_name=self.collection_name)
+            self.client.create_collection(
+                collection_name=self.collection_name,
+                vectors_config=VectorParams(
+                    size=dimension,
+                    distance=Distance.COSINE,
+                ),
+            )
+
+    def _get_collection_vector_size(self) -> int | None:
+        try:
+            info = self.client.get_collection(collection_name=self.collection_name)
+        except Exception:
+            return None
+
+        vectors = getattr(info.config.params, "vectors", None)
+        if vectors is None:
+            return None
+        if isinstance(vectors, dict):
+            first_vector = next(iter(vectors.values()), None)
+            return getattr(first_vector, "size", None)
+        return getattr(vectors, "size", None)
 
     def add(self, chunks: list[StoredChunk], embeddings: np.ndarray) -> None:
         """Add chunk records and their normalized embeddings to Qdrant."""
@@ -76,6 +104,9 @@ class QdrantVectorStore:
 
         self.client.upsert(collection_name=self.collection_name, points=points)
 
+# Takes an embedding vector as input
+# Searches the Qdrant collection for the most similar vectors
+# Returns raw Qdrant results (PointStruct objects)
     def search(self, query_embedding: np.ndarray, top_k: int) -> list[PointStruct]:
         """Return top-k records ranked by cosine similarity."""
 
@@ -98,6 +129,8 @@ class QdrantVectorStore:
         )
         return list(results.points)
 
+# Takes those raw Qdrant results
+# Converts them into clean API-friendly SourceChunk objects
     @staticmethod
     def to_source_chunks(results: list[PointStruct]) -> list[SourceChunk]:
         """Convert Qdrant search results to API source chunks."""
