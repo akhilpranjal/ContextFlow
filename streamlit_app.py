@@ -15,7 +15,6 @@ from app.vectorstore import QdrantVectorStore, StoredChunk
 
 DEFAULT_API_BASE_URL = os.getenv("CONTEXTFLOW_API_URL", "http://127.0.0.1:8000")
 RUNTIME_MODE = os.getenv("CONTEXTFLOW_RUNTIME", "auto").strip().lower()
-LIVE_APP_URL = "https://contextflowapi.streamlit.app/"
 
 
 st.set_page_config(
@@ -63,36 +62,6 @@ st.markdown(
         box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
     }
 
-    .header-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-
-    .header-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        justify-content: flex-end;
-    }
-
-    .ghost-link {
-        display: inline-flex;
-        align-items: center;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 999px;
-        padding: 0.45rem 0.8rem;
-        color: var(--text);
-        text-decoration: none;
-        background: rgba(255, 255, 255, 0.03);
-    }
-
-    .ghost-link:hover {
-        border-color: rgba(245, 158, 11, 0.5);
-        color: var(--text);
-    }
-
     .hero-row {
         display: flex;
         flex-wrap: wrap;
@@ -110,25 +79,6 @@ st.markdown(
         background: rgba(255, 255, 255, 0.03);
         color: var(--muted);
         font-size: 0.9rem;
-    }
-
-    .hero-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.45rem;
-        margin-top: 1rem;
-        padding: 0.55rem 0.9rem;
-        border-radius: 999px;
-        border: 1px solid rgba(245, 158, 11, 0.35);
-        background: rgba(245, 158, 11, 0.12);
-        color: var(--text);
-        font-weight: 700;
-        text-decoration: none;
-    }
-
-    .hero-link:hover {
-        border-color: rgba(245, 158, 11, 0.7);
-        color: var(--text);
     }
 
     .eyebrow {
@@ -218,10 +168,6 @@ st.markdown(
     .stButton button:hover {
         border-color: rgba(245, 158, 11, 0.65);
         transform: translateY(-1px);
-    }
-
-    div[data-testid="stSidebar"] {
-        display: none;
     }
 </style>
 """,
@@ -413,28 +359,17 @@ else:
 st.markdown(
     """
     <div class="hero">
-        <div class="header-bar">
-            <div>
-                <div class="eyebrow">Document intelligence</div>
-                <h1 class="title">ContextFlow Studio</h1>
-            </div>
-            <div class="header-actions">
-                <a class="ghost-link" href="https://contextflowapi.streamlit.app/" target="_blank" rel="noopener noreferrer">Live app</a>
-                <a class="ghost-link" href="#guide">Guide</a>
-            </div>
-        </div>
+        <div class="eyebrow">Document intelligence</div>
+        <h1 class="title">ContextFlow Studio</h1>
         <p class="subtitle">
             Upload documents, index them in Qdrant, and ask grounded questions from a clean Streamlit interface.
-            The public deployment runs on Streamlit Cloud and keeps the RAG flow embedded.
+            The public deployment runs on Streamlit Cloud as the production version.
         </p>
         <div class="hero-row">
             <div class="pill">Deployment: Streamlit Cloud</div>
             <div class="pill">Mode: %s</div>
             <div class="pill">Live URL: contextflowapi.streamlit.app</div>
         </div>
-        <a class="hero-link" href="https://contextflowapi.streamlit.app/" target="_blank" rel="noopener noreferrer">
-            Open the live app
-        </a>
     </div>
     """ % html.escape(runtime_label),
     unsafe_allow_html=True,
@@ -459,10 +394,7 @@ with top_actions[0]:
         ]
         st.rerun()
 with top_actions[1]:
-    st.markdown(f'<a class="ghost-link" href="{LIVE_APP_URL}" target="_blank" rel="noopener noreferrer">Open public deployment</a>', unsafe_allow_html=True)
-
-if not use_embedded_runtime():
-    st.caption("Client mode still works via CONTEXTFLOW_API_URL for local setups.")
+    st.empty()
 
 if use_embedded_runtime():
     tab_chat, tab_upload = st.tabs(["Chat", "Upload"])
@@ -588,8 +520,6 @@ if tab_guide is not None:
         st.markdown('<div class="section-heading">How to run the stack</div>', unsafe_allow_html=True)
         guide_col, notes_col = st.columns([1, 1])
         with guide_col:
-            st.markdown("**Live app**")
-            st.markdown(f'[Open the live app]({LIVE_APP_URL})')
             st.markdown("**Local backend**")
             st.code("python -m uvicorn app.main:app --reload", language="powershell")
             st.markdown("**Local Streamlit UI**")
